@@ -2,7 +2,6 @@
 
 import json
 import os
-import sqlite3
 import subprocess
 from dataclasses import dataclass
 from datetime import datetime
@@ -151,13 +150,20 @@ def discover_beads_workspaces() -> dict[str, str]:
         except (json.JSONDecodeError, OSError):
             pass
 
-    # Scan ~/Code for beads workspaces not in the registry (e.g. dolt-backed)
+    # Scan search root for beads workspaces not in the registry
     search_root = _beads_search_root()
     if search_root.exists():
+        # SQLite-backed workspaces
         for db in search_root.glob("*/.beads/beads.db"):
             workspace = str(db.parent.parent)
             if workspace not in found:
                 found[workspace] = str(db)
+        # Dolt-backed workspaces (marker file created by bd init)
+        for marker in search_root.glob("*/.beads/dolt/.bd-dolt-ok"):
+            dolt_dir = marker.parent
+            workspace = str(dolt_dir.parent.parent)
+            if workspace not in found:
+                found[workspace] = str(dolt_dir)
 
     return found
 
@@ -200,7 +206,7 @@ def list_issues_via_cli(workspace_path: str, db_path: str) -> list[BeadsIssue]:
 
 def list_beads_issues() -> list[BeadsIssue]:
     """Return all active issues across all discovered beads workspaces."""
-    workspaces = _discover_beads_workspaces()
+    workspaces = discover_beads_workspaces()
     issues: list[BeadsIssue] = []
     for workspace_path, db_path in workspaces.items():
         if not Path(db_path).exists():
@@ -213,37 +219,33 @@ def list_closed_mapped_issues(beads_ids: set[str], db_path: str) -> list[BeadsIs
     """Return closed/deleted issues from db_path whose IDs are in beads_ids."""
     if not beads_ids or not Path(db_path).exists():
         return []
-    placeholders = ",".join("?" * len(beads_ids))
     project = Path(db_path).parent.parent.name
     try:
-        with sqlite3.connect(f"file:{db_path}?mode=ro", uri=True) as con:
-            rows = con.execute(
-            f"""
-            SELECT id, title, status, priority, COALESCE(due_at, ''), COALESCE(description, '')
-            FROM issues
-            WHERE id IN ({placeholders})
-              AND (status IN ('closed', 'tombstone') OR deleted_at IS NOT NULL)
-              AND is_template = 0
-              AND mol_type = ''
-              AND issue_type = 'task'
-            """,
-            list(beads_ids),
-        ).fetchall()
-    except sqlite3.Error:
+        result = subprocess.run(
+            ["bd", "list", "--json", "--status=closed", "--db", db_path],
+            capture_output=True,
+            text=True,
+            timeout=15,
+        )
+        if result.returncode != 0:
+            return []
+        items: list[dict] = json.loads(result.stdout)
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
         return []
 
     return [
         BeadsIssue(
-            id=row[0],
-            title=row[1],
-            status=row[2],
-            priority=row[3],
-            due_at=row[4],
-            description=row[5],
+            id=item["id"],
+            title=item.get("title", ""),
+            status=item.get("status", "closed"),
+            priority=item.get("priority", 2),
+            due_at=item.get("due_at", "") or "",
+            description=item.get("description", "") or "",
             project=project,
             db_path=db_path,
         )
-        for row in rows
+        for item in items
+        if item.get("id") in beads_ids
     ]
 
 

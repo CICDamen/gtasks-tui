@@ -1379,7 +1379,7 @@ class SetupScreen(ModalScreen):
     @work(thread=True)
     def _discover_projects(self) -> None:
         workspaces = discover_beads_workspaces()
-        self.call_from_thread(self._populate_projects, workspaces)
+        self.app.call_from_thread(self._populate_projects, workspaces)
 
     def _populate_projects(self, workspaces: dict[str, str]) -> None:
         loading = self.query_one("#projects-loading", Static)
