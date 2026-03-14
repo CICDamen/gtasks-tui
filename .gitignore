@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+dist/
+build/
+*.egg-info/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Ruff
+.ruff_cache/
+
+# Local IDE / tool state
+.claude/
+
+# Temp files
+*.tmp
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db

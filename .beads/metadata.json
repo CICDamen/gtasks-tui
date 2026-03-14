@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "tasks_tui",
+  "project_id": "510e3808-0b2d-49d7-b4a7-e54a4a344b04"
+}
