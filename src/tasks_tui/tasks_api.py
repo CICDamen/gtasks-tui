@@ -49,7 +49,7 @@ class Task:
     def display_title(self) -> str:
         """Title with [label] prefix stripped."""
         if self.label:
-            return self.title[len(self.label) + 2:].lstrip()
+            return self.title[len(self.label) + 2 :].lstrip()
         return self.title
 
     @property
@@ -137,12 +137,16 @@ def _gws(
     if body:
         cmd += ["--json", json.dumps(body)]
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=15)
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, check=True, timeout=15
+        )
     except subprocess.CalledProcessError as e:
         stderr = e.stderr.strip() if e.stderr else "(no output)"
         raise RuntimeError(f"gws command failed: {stderr}") from e
     except FileNotFoundError:
-        raise RuntimeError("gws CLI not found. Install it and ensure it is on your PATH.") from None
+        raise RuntimeError(
+            "gws CLI not found. Install it and ensure it is on your PATH."
+        ) from None
     return json.loads(result.stdout)
 
 
@@ -150,7 +154,11 @@ def list_tasks() -> list[Task]:
     data = _gws(
         "tasks",
         "list",
-        params={"tasklist": _default_tasklist_id(), "showCompleted": False, "showHidden": False},
+        params={
+            "tasklist": _default_tasklist_id(),
+            "showCompleted": False,
+            "showHidden": False,
+        },
     )
     items = data.get("items", [])
     return [
@@ -237,7 +245,12 @@ def update_task(task_id: str, title: str, due: str = "", notes: str = "") -> Non
         body["notes"] = notes
     if due:
         body["due"] = due
-    _gws("tasks", "patch", params={"tasklist": _default_tasklist_id(), "task": task_id}, body=body)
+    _gws(
+        "tasks",
+        "patch",
+        params={"tasklist": _default_tasklist_id(), "task": task_id},
+        body=body,
+    )
 
 
 def complete_task(task_id: str) -> None:
@@ -259,7 +272,9 @@ def uncomplete_task(task_id: str) -> None:
 
 
 def delete_task(task_id: str) -> None:
-    _gws("tasks", "delete", params={"tasklist": _default_tasklist_id(), "task": task_id})
+    _gws(
+        "tasks", "delete", params={"tasklist": _default_tasklist_id(), "task": task_id}
+    )
 
 
 def list_tasklists() -> list[dict]:

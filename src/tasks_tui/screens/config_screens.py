@@ -19,7 +19,7 @@ class ProjectFilterRow(Widget):
 
     def __init__(self, name: str, visible: bool) -> None:
         super().__init__(classes="filter-row")
-        self._name = name
+        self._name: str = name
         self._visible = visible
 
     def compose(self) -> ComposeResult:
@@ -97,7 +97,7 @@ class ProjectRow(Widget):
 
     def __init__(self, name: str, sync: bool, visible: bool, label: str) -> None:
         super().__init__(classes="project-row")
-        self._name = name
+        self._name: str = name
         self._sync = sync
         self._visible = visible
         self._label = label
@@ -153,7 +153,9 @@ class SetupScreen(ModalScreen):
             yield Static("DATA SOURCES", classes="setup-section")
             with Horizontal(classes="setup-row"):
                 yield Static("Google Tasks", classes="setup-option-label")
-                yield Switch(value=self._get("sources", "google_tasks"), id="sw-google-tasks")
+                yield Switch(
+                    value=self._get("sources", "google_tasks"), id="sw-google-tasks"
+                )
             with Horizontal(classes="setup-row"):
                 yield Static("Beads issues", classes="setup-option-label")
                 yield Switch(value=self._get("sources", "beads"), id="sw-beads")
@@ -172,11 +174,15 @@ class SetupScreen(ModalScreen):
                 yield Switch(value=self._get("sync", "enabled"), id="sw-sync-enabled")
             with Horizontal(classes="setup-row"):
                 yield Static("Auto-sync on start", classes="setup-option-label")
-                yield Switch(value=self._get("sync", "auto_sync_on_start"), id="sw-auto-sync")
+                yield Switch(
+                    value=self._get("sync", "auto_sync_on_start"), id="sw-auto-sync"
+                )
 
             if not self._first_run:
                 yield Static("", classes="setup-spacer")
-                yield Static("PROJECTS  (sync  visible  label)", classes="setup-section")
+                yield Static(
+                    "PROJECTS  (sync  visible  label)", classes="setup-section"
+                )
                 yield Static("Discovering projects…", id="projects-loading")
 
             yield Static("", classes="setup-spacer")
@@ -200,7 +206,12 @@ class SetupScreen(ModalScreen):
         for workspace_path in sorted(workspaces):
             name = Path(workspace_path).name
             proj = get_project_config(name, self._initial)
-            row = ProjectRow(name=name, sync=proj["sync"], visible=proj["visible"], label=proj["label"])
+            row = ProjectRow(
+                name=name,
+                sync=proj["sync"],
+                visible=proj["visible"],
+                label=proj["label"],
+            )
             dialog.mount(row, before=save_btn)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -211,23 +222,32 @@ class SetupScreen(ModalScreen):
                 self.notify("Search root path does not exist", severity="error")
                 return
             if beads_on and not search_root:
-                self.notify("Search root path is required when beads is enabled", severity="error")
+                self.notify(
+                    "Search root path is required when beads is enabled",
+                    severity="error",
+                )
                 return
             projects: dict[str, dict] = dict(self._initial.get("projects", {}))
             for row in self.query(ProjectRow):
                 projects[row.project_name] = row.get_values()
-            self.dismiss({
-                "sync": {
-                    "enabled": self.query_one("#sw-sync-enabled", Switch).value,
-                    "auto_sync_on_start": self.query_one("#sw-auto-sync", Switch).value,
-                },
-                "sources": {
-                    "google_tasks": self.query_one("#sw-google-tasks", Switch).value,
-                    "beads": self.query_one("#sw-beads", Switch).value,
-                    "beads_search_root": search_root,
-                },
-                "projects": projects,
-            })
+            self.dismiss(
+                {
+                    "sync": {
+                        "enabled": self.query_one("#sw-sync-enabled", Switch).value,
+                        "auto_sync_on_start": self.query_one(
+                            "#sw-auto-sync", Switch
+                        ).value,
+                    },
+                    "sources": {
+                        "google_tasks": self.query_one(
+                            "#sw-google-tasks", Switch
+                        ).value,
+                        "beads": self.query_one("#sw-beads", Switch).value,
+                        "beads_search_root": search_root,
+                    },
+                    "projects": projects,
+                }
+            )
 
     def action_skip(self) -> None:
         self.dismiss(None)

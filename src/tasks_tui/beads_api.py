@@ -17,6 +17,7 @@ def _beads_search_root() -> Path:
     try:
         from tasks_tui.config import CONFIG_PATH
         import json as _json
+
         if CONFIG_PATH.exists():
             data = _json.loads(CONFIG_PATH.read_text())
             root = data.get("sources", {}).get("beads_search_root", "~/Code")
@@ -24,6 +25,7 @@ def _beads_search_root() -> Path:
     except Exception:
         pass
     return Path.home() / "Code"
+
 
 STATUSES = ["open", "in_progress", "blocked", "deferred"]
 
@@ -308,7 +310,16 @@ def create_beads_child_issue(
     priority: int = 2,
 ) -> str:
     """Create a child issue under parent via the bd CLI. Returns the new issue ID."""
-    cmd = ["bd", "create", title, "--parent", parent.id, "--db", parent.db_path, "--silent"]
+    cmd = [
+        "bd",
+        "create",
+        title,
+        "--parent",
+        parent.id,
+        "--db",
+        parent.db_path,
+        "--silent",
+    ]
     if description:
         cmd += ["--description", description]
     if due:

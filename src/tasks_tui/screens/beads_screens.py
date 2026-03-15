@@ -73,7 +73,9 @@ class BeadsEditScreen(ModalScreen[dict | None]):
     def compose(self) -> ComposeResult:
         with Vertical(id="new-task-dialog"):
             yield Label(f"Edit [{self._beads_issue.id}]", id="dialog-title")
-            yield Input(value=self._current_label, placeholder="Label...", id="task-label")
+            yield Input(
+                value=self._current_label, placeholder="Label...", id="task-label"
+            )
             yield Input(value=self._beads_issue.title, id="task-title")
             with Horizontal(classes="due-row"):
                 yield Button(

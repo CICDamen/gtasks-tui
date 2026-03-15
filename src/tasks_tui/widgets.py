@@ -53,7 +53,9 @@ class TaskItem(ListItem):
 
 
 class BeadsItem(ListItem):
-    def __init__(self, issue: BeadsIssue, depth: int = 0, project_label: str = "") -> None:
+    def __init__(
+        self, issue: BeadsIssue, depth: int = 0, project_label: str = ""
+    ) -> None:
         super().__init__()
         self.issue = issue
         self._depth = depth

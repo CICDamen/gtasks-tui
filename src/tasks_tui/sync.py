@@ -110,8 +110,6 @@ def _strip_bd_marker(title: str | None) -> str:
     return " ".join((title or "").replace(BD_MARKER, " ").split())
 
 
-
-
 # ---------------------------------------------------------------------------
 # Sync engine
 # ---------------------------------------------------------------------------
@@ -314,4 +312,6 @@ class SyncEngine:
                 errors.append(f"complete orphan {beads_id}: {e}")
 
         # Google Tasks → beads: pull tasks with (bd) marker into beads as new issues
-        self._sync_gtasks_to_beads(tasklist_id, workspace_path, db_path, project_name, errors)
+        self._sync_gtasks_to_beads(
+            tasklist_id, workspace_path, db_path, project_name, errors
+        )

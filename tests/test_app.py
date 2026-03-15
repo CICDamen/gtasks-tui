@@ -1,6 +1,6 @@
 """Tests for the Textual UI — all key bindings and actions."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -13,13 +13,25 @@ from tasks_tui.tasks_api import Task
 # ---------------------------------------------------------------------------
 
 OPEN_TASKS = [
-    Task(id="1", title="Buy milk", status="needsAction", due="2026-03-13T00:00:00.000Z"),
+    Task(
+        id="1", title="Buy milk", status="needsAction", due="2026-03-13T00:00:00.000Z"
+    ),
     Task(id="2", title="Call dentist", status="needsAction"),
-    Task(id="3", title="Overdue report", status="needsAction", due="2026-03-10T00:00:00.000Z"),
+    Task(
+        id="3",
+        title="Overdue report",
+        status="needsAction",
+        due="2026-03-10T00:00:00.000Z",
+    ),
 ]
 
 COMPLETED_TASKS = [
-    Task(id="4", title="Send invoice", status="completed", completed_at="2026-03-11T00:00:00.000Z"),
+    Task(
+        id="4",
+        title="Send invoice",
+        status="completed",
+        completed_at="2026-03-11T00:00:00.000Z",
+    ),
 ]
 
 NO_TASKS: list[Task] = []
@@ -51,8 +63,10 @@ def _mock_load(open_tasks=NO_TASKS, completed_tasks=NO_TASKS):
 
 @pytest.mark.asyncio
 async def test_renders_open_tasks():
-    with patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             items = list(pilot.app.query("TaskItem"))
@@ -64,8 +78,10 @@ async def test_renders_open_tasks():
 
 @pytest.mark.asyncio
 async def test_renders_completed_tasks():
-    with patch("tasks_tui.app.list_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=COMPLETED_TASKS):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=COMPLETED_TASKS),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             items = list(pilot.app.query("TaskItem"))
@@ -74,8 +90,10 @@ async def test_renders_completed_tasks():
 
 @pytest.mark.asyncio
 async def test_renders_open_section_header():
-    with patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             headers = list(pilot.app.query("SectionHeader"))
@@ -85,8 +103,10 @@ async def test_renders_open_section_header():
 
 @pytest.mark.asyncio
 async def test_renders_completed_section_header():
-    with patch("tasks_tui.app.list_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=COMPLETED_TASKS):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=COMPLETED_TASKS),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             headers = list(pilot.app.query("SectionHeader"))
@@ -96,9 +116,11 @@ async def test_renders_completed_section_header():
 
 @pytest.mark.asyncio
 async def test_renders_empty_state():
-    with patch("tasks_tui.app.list_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_beads_issues", return_value=[]):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.list_beads_issues", return_value=[]),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             assert len(list(pilot.app.query("TaskItem"))) == 0
@@ -118,9 +140,11 @@ async def test_new_task_created():
         created.append(title)
         return Task(id="new", title=title, status="needsAction")
 
-    with patch("tasks_tui.app.list_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.create_task", side_effect=fake_create):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.create_task", side_effect=fake_create),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.press("n")
             await pilot.pause()
@@ -132,9 +156,11 @@ async def test_new_task_created():
 
 @pytest.mark.asyncio
 async def test_new_task_cancelled_with_escape():
-    with patch("tasks_tui.app.list_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.create_task") as mock_create:
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.create_task") as mock_create,
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.press("n")
             await pilot.pause()
@@ -150,9 +176,11 @@ async def test_new_task_cancelled_with_escape():
 
 @pytest.mark.asyncio
 async def test_space_completes_open_task():
-    with patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.complete_task") as mock_complete:
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.complete_task") as mock_complete,
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             lv = pilot.app.query_one("#task-list")
@@ -165,9 +193,11 @@ async def test_space_completes_open_task():
 
 @pytest.mark.asyncio
 async def test_space_uncompletes_completed_task():
-    with patch("tasks_tui.app.list_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=COMPLETED_TASKS), \
-         patch("tasks_tui.app.uncomplete_task") as mock_uncomplete:
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=COMPLETED_TASKS),
+        patch("tasks_tui.app.uncomplete_task") as mock_uncomplete,
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             lv = pilot.app.query_one("#task-list")
@@ -181,9 +211,11 @@ async def test_space_uncompletes_completed_task():
 
 @pytest.mark.asyncio
 async def test_space_on_section_header_does_nothing():
-    with patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.complete_task") as mock_complete:
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.complete_task") as mock_complete,
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             lv = pilot.app.query_one("#task-list")
@@ -201,9 +233,11 @@ async def test_space_on_section_header_does_nothing():
 
 @pytest.mark.asyncio
 async def test_delete_open_task():
-    with patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.delete_task") as mock_delete:
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.delete_task") as mock_delete,
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             lv = pilot.app.query_one("#task-list")
@@ -216,9 +250,11 @@ async def test_delete_open_task():
 
 @pytest.mark.asyncio
 async def test_delete_completed_task():
-    with patch("tasks_tui.app.list_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=COMPLETED_TASKS), \
-         patch("tasks_tui.app.delete_task") as mock_delete:
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=COMPLETED_TASKS),
+        patch("tasks_tui.app.delete_task") as mock_delete,
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             lv = pilot.app.query_one("#task-list")
@@ -231,9 +267,11 @@ async def test_delete_completed_task():
 
 @pytest.mark.asyncio
 async def test_delete_on_section_header_does_nothing():
-    with patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.delete_task") as mock_delete:
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.delete_task") as mock_delete,
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             lv = pilot.app.query_one("#task-list")
@@ -257,9 +295,11 @@ async def test_edit_task_updates_title():
         updated["id"] = task_id
         updated["title"] = title
 
-    with patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.update_task", side_effect=fake_update):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.update_task", side_effect=fake_update),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             # Mock _selected_task to avoid focus/index issues in test context
@@ -277,9 +317,11 @@ async def test_edit_task_updates_title():
 
 @pytest.mark.asyncio
 async def test_edit_cancelled_with_escape():
-    with patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.update_task") as mock_update:
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.update_task") as mock_update,
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             pilot.app._selected_task = lambda: OPEN_TASKS[0]
@@ -297,9 +339,11 @@ async def test_edit_task_updates_notes():
     def fake_update(task_id, title, due="", notes=""):
         updated["notes"] = notes
 
-    with patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.update_task", side_effect=fake_update):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=OPEN_TASKS[:1]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.update_task", side_effect=fake_update),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             pilot.app._selected_task = lambda: OPEN_TASKS[0]
@@ -321,9 +365,11 @@ async def test_edit_task_preserves_existing_due():
         updated["due"] = due
 
     task_with_due = OPEN_TASKS[0]  # has due="2026-03-13T00:00:00.000Z"
-    with patch("tasks_tui.app.list_tasks", return_value=[task_with_due]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.update_task", side_effect=fake_update):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[task_with_due]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.update_task", side_effect=fake_update),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             pilot.app._selected_task = lambda: task_with_due
@@ -347,10 +393,12 @@ async def test_edit_beads_issue_updates_title():
         updated["title"] = title
         updated["id"] = issue.id
 
-    with patch("tasks_tui.app.list_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE]), \
-         patch("tasks_tui.app.update_beads_issue", side_effect=fake_update):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE]),
+        patch("tasks_tui.app.update_beads_issue", side_effect=fake_update),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             pilot.app._selected_beads_issue = lambda: BEADS_ISSUE
@@ -373,10 +421,12 @@ async def test_edit_beads_issue_updates_description():
     def fake_update(issue, title, status, priority, description, due):
         updated["description"] = description
 
-    with patch("tasks_tui.app.list_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE]), \
-         patch("tasks_tui.app.update_beads_issue", side_effect=fake_update):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE]),
+        patch("tasks_tui.app.update_beads_issue", side_effect=fake_update),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             pilot.app._selected_beads_issue = lambda: BEADS_ISSUE
@@ -397,10 +447,12 @@ async def test_edit_beads_issue_cycles_status():
     def fake_update(issue, title, status, priority, description, due):
         updated["status"] = status
 
-    with patch("tasks_tui.app.list_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE]), \
-         patch("tasks_tui.app.update_beads_issue", side_effect=fake_update):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE]),
+        patch("tasks_tui.app.update_beads_issue", side_effect=fake_update),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             pilot.app._selected_beads_issue = lambda: BEADS_ISSUE
@@ -422,10 +474,12 @@ async def test_edit_beads_issue_cycles_priority():
     def fake_update(issue, title, status, priority, description, due):
         updated["priority"] = priority
 
-    with patch("tasks_tui.app.list_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE]), \
-         patch("tasks_tui.app.update_beads_issue", side_effect=fake_update):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE]),
+        patch("tasks_tui.app.update_beads_issue", side_effect=fake_update),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             pilot.app._selected_beads_issue = lambda: BEADS_ISSUE
@@ -442,10 +496,12 @@ async def test_edit_beads_issue_cycles_priority():
 
 @pytest.mark.asyncio
 async def test_edit_beads_issue_cancelled_with_escape():
-    with patch("tasks_tui.app.list_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE]), \
-         patch("tasks_tui.app.update_beads_issue") as mock_update:
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE]),
+        patch("tasks_tui.app.update_beads_issue") as mock_update,
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             pilot.app._selected_beads_issue = lambda: BEADS_ISSUE
@@ -464,10 +520,12 @@ async def test_edit_beads_issue_preserves_due_date():
     def fake_update(issue, title, status, priority, description, due):
         updated["due"] = due
 
-    with patch("tasks_tui.app.list_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]), \
-         patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE]), \
-         patch("tasks_tui.app.update_beads_issue", side_effect=fake_update):
+    with (
+        patch("tasks_tui.app.list_tasks", return_value=[]),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+        patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE]),
+        patch("tasks_tui.app.update_beads_issue", side_effect=fake_update),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             pilot.app._selected_beads_issue = lambda: BEADS_ISSUE
@@ -492,8 +550,10 @@ async def test_refresh_reloads_tasks():
         call_count["n"] += 1
         return OPEN_TASKS
 
-    with patch("tasks_tui.app.list_tasks", side_effect=fake_list), \
-         patch("tasks_tui.app.list_completed_tasks", return_value=[]):
+    with (
+        patch("tasks_tui.app.list_tasks", side_effect=fake_list),
+        patch("tasks_tui.app.list_completed_tasks", return_value=[]),
+    ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
             initial = call_count["n"]
@@ -574,7 +634,9 @@ async def test_beads_subtask_renders_indented():
     with (
         patch("tasks_tui.app.list_tasks", return_value=[]),
         patch("tasks_tui.app.list_completed_tasks", return_value=[]),
-        patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE, BEADS_SUBTASK]),
+        patch(
+            "tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE, BEADS_SUBTASK]
+        ),
     ):
         async with GTasksApp().run_test() as pilot:
             await pilot.pause()
@@ -693,8 +755,14 @@ BEADS_ISSUE_HIDDEN = BeadsIssue(
 async def test_beads_issue_with_visible_false_is_filtered_out():
     config = {
         "sync": {"enabled": False, "auto_sync_on_start": False},
-        "sources": {"google_tasks": False, "beads": True, "beads_search_root": "~/Code"},
-        "projects": {"hidden-app": {"sync": True, "visible": False, "label": "hidden-app"}},
+        "sources": {
+            "google_tasks": False,
+            "beads": True,
+            "beads_search_root": "~/Code",
+        },
+        "projects": {
+            "hidden-app": {"sync": True, "visible": False, "label": "hidden-app"}
+        },
     }
     with (
         patch("tasks_tui.app.list_tasks", return_value=[]),
@@ -713,7 +781,11 @@ async def test_beads_issue_with_visible_false_is_filtered_out():
 async def test_beads_issue_with_visible_true_is_shown():
     config = {
         "sync": {"enabled": False, "auto_sync_on_start": False},
-        "sources": {"google_tasks": False, "beads": True, "beads_search_root": "~/Code"},
+        "sources": {
+            "google_tasks": False,
+            "beads": True,
+            "beads_search_root": "~/Code",
+        },
         "projects": {"myapp": {"sync": True, "visible": True, "label": "myapp"}},
     }
     with (
@@ -734,14 +806,21 @@ async def test_beads_item_uses_per_project_label_as_default():
     """Per-project label is passed as default to get_beads_label."""
     config = {
         "sync": {"enabled": False, "auto_sync_on_start": False},
-        "sources": {"google_tasks": False, "beads": True, "beads_search_root": "~/Code"},
+        "sources": {
+            "google_tasks": False,
+            "beads": True,
+            "beads_search_root": "~/Code",
+        },
         "projects": {"myapp": {"sync": True, "visible": True, "label": "work-project"}},
     }
     with (
         patch("tasks_tui.app.list_tasks", return_value=[]),
         patch("tasks_tui.app.list_completed_tasks", return_value=[]),
         patch("tasks_tui.app.list_beads_issues", return_value=[BEADS_ISSUE]),
-        patch("tasks_tui.task_list.get_beads_label", side_effect=lambda issue_id, default: default) as mock_label,
+        patch(
+            "tasks_tui.task_list.get_beads_label",
+            side_effect=lambda issue_id, default: default,
+        ) as mock_label,
     ):
         async with GTasksApp().run_test() as pilot:
             pilot.app._config = config
@@ -749,7 +828,9 @@ async def test_beads_item_uses_per_project_label_as_default():
             await pilot.pause()
             # get_beads_label should have been called with the per-project label as default
             # (the second _load_tasks call, after config is updated, should use "work-project")
-            calls = [call for call in mock_label.call_args_list if call[0][0] == "PROJ-001"]
+            calls = [
+                call for call in mock_label.call_args_list if call[0][0] == "PROJ-001"
+            ]
             assert calls, "get_beads_label not called for PROJ-001"
             assert any(c[0][1] == "work-project" for c in calls)
 
@@ -825,11 +906,15 @@ def _push_filter_screen(app, config=None):
 async def test_filter_screen_populates_rows():
     """ProjectFilterScreen populates one row per discovered workspace."""
     from tasks_tui.app import ProjectFilterRow
+
     with (
         patch("tasks_tui.app.list_tasks", return_value=[]),
         patch("tasks_tui.app.list_completed_tasks", return_value=[]),
         patch("tasks_tui.app.list_beads_issues", return_value=[]),
-        patch("tasks_tui.screens.config_screens.discover_beads_workspaces", return_value=_WORKSPACES),
+        patch(
+            "tasks_tui.screens.config_screens.discover_beads_workspaces",
+            return_value=_WORKSPACES,
+        ),
     ):
         async with GTasksApp().run_test() as pilot:
             screen = _push_filter_screen(pilot.app)
@@ -843,16 +928,22 @@ async def test_filter_screen_populates_rows():
 async def test_filter_screen_reflects_visible_state():
     """Rows reflect the visible flag from config."""
     from tasks_tui.app import ProjectFilterRow
+
     with (
         patch("tasks_tui.app.list_tasks", return_value=[]),
         patch("tasks_tui.app.list_completed_tasks", return_value=[]),
         patch("tasks_tui.app.list_beads_issues", return_value=[]),
-        patch("tasks_tui.screens.config_screens.discover_beads_workspaces", return_value=_WORKSPACES),
+        patch(
+            "tasks_tui.screens.config_screens.discover_beads_workspaces",
+            return_value=_WORKSPACES,
+        ),
     ):
         async with GTasksApp().run_test() as pilot:
             screen = _push_filter_screen(pilot.app)
             await pilot.pause()
-            states = {r.project_name: r.is_visible for r in screen.query(ProjectFilterRow)}
+            states = {
+                r.project_name: r.is_visible for r in screen.query(ProjectFilterRow)
+            }
             assert states["alpha"] is True
             assert states["beta"] is False
 
@@ -861,11 +952,15 @@ async def test_filter_screen_reflects_visible_state():
 async def test_filter_screen_select_all():
     """ctrl+a action sets all visible toggles to True."""
     from tasks_tui.app import ProjectFilterRow
+
     with (
         patch("tasks_tui.app.list_tasks", return_value=[]),
         patch("tasks_tui.app.list_completed_tasks", return_value=[]),
         patch("tasks_tui.app.list_beads_issues", return_value=[]),
-        patch("tasks_tui.screens.config_screens.discover_beads_workspaces", return_value=_WORKSPACES),
+        patch(
+            "tasks_tui.screens.config_screens.discover_beads_workspaces",
+            return_value=_WORKSPACES,
+        ),
     ):
         async with GTasksApp().run_test() as pilot:
             screen = _push_filter_screen(pilot.app)
@@ -879,11 +974,15 @@ async def test_filter_screen_select_all():
 async def test_filter_screen_deselect_all():
     """ctrl+n action sets all visible toggles to False."""
     from tasks_tui.app import ProjectFilterRow
+
     with (
         patch("tasks_tui.app.list_tasks", return_value=[]),
         patch("tasks_tui.app.list_completed_tasks", return_value=[]),
         patch("tasks_tui.app.list_beads_issues", return_value=[]),
-        patch("tasks_tui.screens.config_screens.discover_beads_workspaces", return_value=_WORKSPACES),
+        patch(
+            "tasks_tui.screens.config_screens.discover_beads_workspaces",
+            return_value=_WORKSPACES,
+        ),
     ):
         async with GTasksApp().run_test() as pilot:
             screen = _push_filter_screen(pilot.app)
@@ -897,11 +996,15 @@ async def test_filter_screen_deselect_all():
 async def test_filter_screen_search_filters_rows():
     """Typing in the search box hides rows that don't match."""
     from tasks_tui.app import ProjectFilterRow
+
     with (
         patch("tasks_tui.app.list_tasks", return_value=[]),
         patch("tasks_tui.app.list_completed_tasks", return_value=[]),
         patch("tasks_tui.app.list_beads_issues", return_value=[]),
-        patch("tasks_tui.screens.config_screens.discover_beads_workspaces", return_value=_WORKSPACES),
+        patch(
+            "tasks_tui.screens.config_screens.discover_beads_workspaces",
+            return_value=_WORKSPACES,
+        ),
     ):
         async with GTasksApp().run_test() as pilot:
             screen = _push_filter_screen(pilot.app)
@@ -920,11 +1023,15 @@ async def test_filter_screen_search_filters_rows():
 async def test_filter_screen_ctrl_a_n_keybindings():
     """ctrl+a / ctrl+n keybindings toggle all rows without disturbing the search input."""
     from tasks_tui.app import ProjectFilterRow
+
     with (
         patch("tasks_tui.app.list_tasks", return_value=[]),
         patch("tasks_tui.app.list_completed_tasks", return_value=[]),
         patch("tasks_tui.app.list_beads_issues", return_value=[]),
-        patch("tasks_tui.screens.config_screens.discover_beads_workspaces", return_value=_WORKSPACES),
+        patch(
+            "tasks_tui.screens.config_screens.discover_beads_workspaces",
+            return_value=_WORKSPACES,
+        ),
     ):
         async with GTasksApp().run_test() as pilot:
             screen = _push_filter_screen(pilot.app)
@@ -939,6 +1046,7 @@ async def test_filter_screen_ctrl_a_n_keybindings():
             assert not any(r.is_visible for r in screen.query(ProjectFilterRow))
             # search input should be empty — keystrokes were not typed as text
             from textual.widgets import Input as TInput
+
             search_input = screen.query_one("#filter-search", TInput)
             assert search_input.value == ""
 
@@ -946,18 +1054,22 @@ async def test_filter_screen_ctrl_a_n_keybindings():
 @pytest.mark.asyncio
 async def test_filter_screen_dismiss_returns_projects():
     """Closing the filter panel returns updated projects dict."""
-    from tasks_tui.app import ProjectFilterRow
     with (
         patch("tasks_tui.app.list_tasks", return_value=[]),
         patch("tasks_tui.app.list_completed_tasks", return_value=[]),
         patch("tasks_tui.app.list_beads_issues", return_value=[]),
-        patch("tasks_tui.screens.config_screens.discover_beads_workspaces", return_value=_WORKSPACES),
+        patch(
+            "tasks_tui.screens.config_screens.discover_beads_workspaces",
+            return_value=_WORKSPACES,
+        ),
     ):
         async with GTasksApp().run_test() as pilot:
             result = {}
+
             def capture(projects):
                 if projects is not None:
                     result["projects"] = projects
+
             screen = ProjectFilterScreen(config=_FILTER_CONFIG)
             await pilot.app.push_screen(screen, capture)
             await pilot.pause()
@@ -978,7 +1090,11 @@ async def test_setup_screen_rejects_nonexistent_search_root(tmp_path):
     """Save is blocked and a notification fires when beads is on and path doesn't exist."""
     config = {
         "sync": {"enabled": False, "auto_sync_on_start": False},
-        "sources": {"google_tasks": False, "beads": True, "beads_search_root": str(tmp_path / "no-such-dir")},
+        "sources": {
+            "google_tasks": False,
+            "beads": True,
+            "beads_search_root": str(tmp_path / "no-such-dir"),
+        },
         "projects": {},
     }
     with (
@@ -1035,7 +1151,8 @@ async def test_setup_screen_rejects_empty_search_root_when_beads_enabled():
                 pilot.app.screen.on_button_pressed(save_btn.Pressed(save_btn))
                 await pilot.pause()
                 mock_notify.assert_called_once_with(
-                    "Search root path is required when beads is enabled", severity="error"
+                    "Search root path is required when beads is enabled",
+                    severity="error",
                 )
 
     assert "result" not in dismissed
@@ -1046,7 +1163,11 @@ async def test_setup_screen_accepts_valid_search_root(tmp_path):
     """Save proceeds when beads is on and search root path exists."""
     config = {
         "sync": {"enabled": False, "auto_sync_on_start": False},
-        "sources": {"google_tasks": False, "beads": True, "beads_search_root": str(tmp_path)},
+        "sources": {
+            "google_tasks": False,
+            "beads": True,
+            "beads_search_root": str(tmp_path),
+        },
         "projects": {},
     }
     with (

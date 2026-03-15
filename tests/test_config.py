@@ -15,7 +15,9 @@ class TestLoadConfig:
 
     def test_loads_valid_file(self, tmp_path):
         f = tmp_path / "config.json"
-        f.write_text(json.dumps({"sync": {"enabled": False}, "sources": {"beads": False}}))
+        f.write_text(
+            json.dumps({"sync": {"enabled": False}, "sources": {"beads": False}})
+        )
         with patch("tasks_tui.config.CONFIG_PATH", f):
             result = load_config()
         assert result["sync"]["enabled"] is False

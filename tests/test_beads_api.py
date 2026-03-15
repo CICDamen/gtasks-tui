@@ -3,7 +3,6 @@
 import json
 from unittest.mock import MagicMock, patch
 
-import pytest
 
 from tasks_tui.beads_api import (
     BeadsIssue,
@@ -74,8 +73,10 @@ class TestCreateBeadsChildIssue:
     def test_calls_bd_create_with_parent_flag(self):
         mock_result = MagicMock()
         mock_result.stdout = "PROJ-001.1\n"
-        with patch("tasks_tui.beads_api.subprocess.run", return_value=mock_result) as mock_run:
-            result = create_beads_child_issue(self._parent(), "Child task")
+        with patch(
+            "tasks_tui.beads_api.subprocess.run", return_value=mock_result
+        ) as mock_run:
+            create_beads_child_issue(self._parent(), "Child task")
         cmd = mock_run.call_args[0][0]
         assert "bd" in cmd
         assert "create" in cmd
@@ -96,7 +97,9 @@ class TestCreateBeadsChildIssue:
     def test_includes_description_when_provided(self):
         mock_result = MagicMock()
         mock_result.stdout = "PROJ-001.1\n"
-        with patch("tasks_tui.beads_api.subprocess.run", return_value=mock_result) as mock_run:
+        with patch(
+            "tasks_tui.beads_api.subprocess.run", return_value=mock_result
+        ) as mock_run:
             create_beads_child_issue(self._parent(), "Child", description="Some notes")
         cmd = mock_run.call_args[0][0]
         assert "--description" in cmd
@@ -105,7 +108,9 @@ class TestCreateBeadsChildIssue:
     def test_omits_description_when_empty(self):
         mock_result = MagicMock()
         mock_result.stdout = "PROJ-001.1\n"
-        with patch("tasks_tui.beads_api.subprocess.run", return_value=mock_result) as mock_run:
+        with patch(
+            "tasks_tui.beads_api.subprocess.run", return_value=mock_result
+        ) as mock_run:
             create_beads_child_issue(self._parent(), "Child", description="")
         cmd = mock_run.call_args[0][0]
         assert "--description" not in cmd
@@ -113,15 +118,21 @@ class TestCreateBeadsChildIssue:
     def test_includes_due_when_provided(self):
         mock_result = MagicMock()
         mock_result.stdout = "PROJ-001.1\n"
-        with patch("tasks_tui.beads_api.subprocess.run", return_value=mock_result) as mock_run:
-            create_beads_child_issue(self._parent(), "Child", due="2026-04-01T00:00:00.000Z")
+        with patch(
+            "tasks_tui.beads_api.subprocess.run", return_value=mock_result
+        ) as mock_run:
+            create_beads_child_issue(
+                self._parent(), "Child", due="2026-04-01T00:00:00.000Z"
+            )
         cmd = mock_run.call_args[0][0]
         assert "--due" in cmd
 
     def test_omits_due_when_empty(self):
         mock_result = MagicMock()
         mock_result.stdout = "PROJ-001.1\n"
-        with patch("tasks_tui.beads_api.subprocess.run", return_value=mock_result) as mock_run:
+        with patch(
+            "tasks_tui.beads_api.subprocess.run", return_value=mock_result
+        ) as mock_run:
             create_beads_child_issue(self._parent(), "Child", due="")
         cmd = mock_run.call_args[0][0]
         assert "--due" not in cmd
@@ -129,7 +140,9 @@ class TestCreateBeadsChildIssue:
     def test_omits_priority_when_default(self):
         mock_result = MagicMock()
         mock_result.stdout = "PROJ-001.1\n"
-        with patch("tasks_tui.beads_api.subprocess.run", return_value=mock_result) as mock_run:
+        with patch(
+            "tasks_tui.beads_api.subprocess.run", return_value=mock_result
+        ) as mock_run:
             create_beads_child_issue(self._parent(), "Child", priority=2)
         cmd = mock_run.call_args[0][0]
         assert "--priority" not in cmd
@@ -137,7 +150,9 @@ class TestCreateBeadsChildIssue:
     def test_includes_priority_when_non_default(self):
         mock_result = MagicMock()
         mock_result.stdout = "PROJ-001.1\n"
-        with patch("tasks_tui.beads_api.subprocess.run", return_value=mock_result) as mock_run:
+        with patch(
+            "tasks_tui.beads_api.subprocess.run", return_value=mock_result
+        ) as mock_run:
             create_beads_child_issue(self._parent(), "Child", priority=0)
         cmd = mock_run.call_args[0][0]
         assert "--priority" in cmd
@@ -156,8 +171,10 @@ class TestDiscoverBeadsWorkspaces:
         db = beads_dir / "beads.db"
         db.touch()
 
-        with patch("tasks_tui.beads_api._beads_search_root", return_value=tmp_path), \
-             patch("tasks_tui.beads_api.REGISTRY_PATH", tmp_path / "no-registry.json"):
+        with (
+            patch("tasks_tui.beads_api._beads_search_root", return_value=tmp_path),
+            patch("tasks_tui.beads_api.REGISTRY_PATH", tmp_path / "no-registry.json"),
+        ):
             result = discover_beads_workspaces()
 
         assert str(tmp_path / "myproject") in result
@@ -169,8 +186,10 @@ class TestDiscoverBeadsWorkspaces:
         marker = dolt_dir / ".bd-dolt-ok"
         marker.touch()
 
-        with patch("tasks_tui.beads_api._beads_search_root", return_value=tmp_path), \
-             patch("tasks_tui.beads_api.REGISTRY_PATH", tmp_path / "no-registry.json"):
+        with (
+            patch("tasks_tui.beads_api._beads_search_root", return_value=tmp_path),
+            patch("tasks_tui.beads_api.REGISTRY_PATH", tmp_path / "no-registry.json"),
+        ):
             result = discover_beads_workspaces()
 
         assert str(tmp_path / "doltproject") in result
@@ -186,8 +205,10 @@ class TestDiscoverBeadsWorkspaces:
         db = beads_dir / "beads.db"
         db.touch()
 
-        with patch("tasks_tui.beads_api._beads_search_root", return_value=tmp_path), \
-             patch("tasks_tui.beads_api.REGISTRY_PATH", tmp_path / "no-registry.json"):
+        with (
+            patch("tasks_tui.beads_api._beads_search_root", return_value=tmp_path),
+            patch("tasks_tui.beads_api.REGISTRY_PATH", tmp_path / "no-registry.json"),
+        ):
             result = discover_beads_workspaces()
 
         # SQLite db is found first; Dolt scan skips because workspace already registered
@@ -259,7 +280,9 @@ class TestListClosedMappedIssues:
         db.mkdir()
 
         mock_result = self._mock_run([])
-        with patch("tasks_tui.beads_api.subprocess.run", return_value=mock_result) as mock_run:
+        with patch(
+            "tasks_tui.beads_api.subprocess.run", return_value=mock_result
+        ) as mock_run:
             list_closed_mapped_issues({"PROJ-001"}, str(db))
 
         cmd = mock_run.call_args[0][0]

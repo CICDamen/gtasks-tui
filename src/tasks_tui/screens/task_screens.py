@@ -84,7 +84,11 @@ class EditTaskScreen(ModalScreen[dict | None]):
     def compose(self) -> ComposeResult:
         with Vertical(id="new-task-dialog"):
             yield Label("Edit Task", id="dialog-title")
-            yield Input(value=self._edit_task.label, placeholder="Label (optional)...", id="task-label")
+            yield Input(
+                value=self._edit_task.label,
+                placeholder="Label (optional)...",
+                id="task-label",
+            )
             yield Input(value=self._edit_task.display_title, id="task-title")
             with Horizontal(classes="due-row"):
                 yield Button(

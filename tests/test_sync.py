@@ -1,7 +1,6 @@
 """Tests for sync.py — mapping I/O and sync engine logic."""
 
 import json
-from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -194,7 +193,10 @@ class TestSyncEngineNoRegistry:
         messages = []
         with (
             patch("tasks_tui.sync.discover_beads_workspaces", return_value={}),
-            patch("tasks_tui.sync.load_mapping", return_value={"projects": {}, "mappings": []}),
+            patch(
+                "tasks_tui.sync.load_mapping",
+                return_value={"projects": {}, "mappings": []},
+            ),
         ):
             engine = SyncEngine()
             engine.run(progress=messages.append)
@@ -209,11 +211,18 @@ class TestSyncEngineFirstSync:
         mock_gtask = Task(id="g-1", title="First task", status="needsAction")
 
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[issue]),
             patch("tasks_tui.sync.list_tasklists", return_value=[]),
-            patch("tasks_tui.sync.create_tasklist", return_value=mock_tasklist) as mock_create_tl,
-            patch("tasks_tui.sync.create_task_in_list", return_value=mock_gtask) as mock_create_task,
+            patch(
+                "tasks_tui.sync.create_tasklist", return_value=mock_tasklist
+            ) as mock_create_tl,
+            patch(
+                "tasks_tui.sync.create_task_in_list", return_value=mock_gtask
+            ) as mock_create_task,
             patch("tasks_tui.sync.update_task_in_list") as mock_update,
         ):
             engine = SyncEngine()
@@ -252,7 +261,10 @@ class TestSyncEngineUpdateExisting:
         tmp_mapping["mapping_file"].write_text(json.dumps(existing_mapping))
 
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[issue]),
             patch("tasks_tui.sync.create_task_in_list") as mock_create,
             patch("tasks_tui.sync.update_task_in_list") as mock_update,
@@ -288,11 +300,18 @@ class TestSyncEngineClosedIssue:
         }
         tmp_mapping["mapping_file"].write_text(json.dumps(existing_mapping))
 
-        closed_issue = _make_issue(id="P-1", title="Done", status="closed", db_path=db_path)
+        closed_issue = _make_issue(
+            id="P-1", title="Done", status="closed", db_path=db_path
+        )
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[]),
-            patch("tasks_tui.sync.list_closed_mapped_issues", return_value=[closed_issue]),
+            patch(
+                "tasks_tui.sync.list_closed_mapped_issues", return_value=[closed_issue]
+            ),
             patch("tasks_tui.sync.create_task_in_list") as mock_create,
             patch("tasks_tui.sync.update_task_in_list") as mock_update,
             patch("tasks_tui.sync.complete_task_in_list") as mock_complete,
@@ -327,13 +346,23 @@ class TestSyncEngineClosedIssue:
         }
         tmp_mapping["mapping_file"].write_text(json.dumps(existing_mapping))
 
-        closed_issue = _make_issue(id="P-1", title="Done", status="closed", db_path=db_path)
+        closed_issue = _make_issue(
+            id="P-1", title="Done", status="closed", db_path=db_path
+        )
         messages = []
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[]),
-            patch("tasks_tui.sync.list_closed_mapped_issues", return_value=[closed_issue]),
-            patch("tasks_tui.sync.complete_task_in_list", side_effect=Exception("API down")),
+            patch(
+                "tasks_tui.sync.list_closed_mapped_issues", return_value=[closed_issue]
+            ),
+            patch(
+                "tasks_tui.sync.complete_task_in_list",
+                side_effect=Exception("API down"),
+            ),
         ):
             engine = SyncEngine()
             engine.run(progress=messages.append)
@@ -363,7 +392,10 @@ class TestSyncEngineOrphanedEntry:
         tmp_mapping["mapping_file"].write_text(json.dumps(existing_mapping))
 
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[]),
             patch("tasks_tui.sync.list_closed_mapped_issues", return_value=[]),
             patch("tasks_tui.sync.complete_task_in_list") as mock_complete,
@@ -397,10 +429,16 @@ class TestSyncEngineOrphanedEntry:
 
         messages = []
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[]),
             patch("tasks_tui.sync.list_closed_mapped_issues", return_value=[]),
-            patch("tasks_tui.sync.complete_task_in_list", side_effect=Exception("API down")),
+            patch(
+                "tasks_tui.sync.complete_task_in_list",
+                side_effect=Exception("API down"),
+            ),
         ):
             engine = SyncEngine()
             engine.run(progress=messages.append)
@@ -422,7 +460,10 @@ class TestSyncEngineTasklistReuse:
         tmp_mapping["mapping_file"].write_text(json.dumps(existing_mapping))
 
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[]),
             patch("tasks_tui.sync.list_tasklists") as mock_list_tl,
             patch("tasks_tui.sync.create_tasklist") as mock_create_tl,
@@ -442,10 +483,15 @@ class TestSyncEngineProjectNameCollision:
         tl2 = {"id": "tl-personal", "title": "myapp"}
 
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db1, "/personal/myapp": db2}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db1, "/personal/myapp": db2},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[]),
             patch("tasks_tui.sync.list_tasklists", return_value=[]),
-            patch("tasks_tui.sync.create_tasklist", side_effect=[tl1, tl2]) as mock_create,
+            patch(
+                "tasks_tui.sync.create_tasklist", side_effect=[tl1, tl2]
+            ) as mock_create,
         ):
             engine = SyncEngine()
             engine.run()
@@ -460,11 +506,16 @@ class TestSyncEnginePerProjectConfig:
     def test_skips_workspace_when_sync_disabled(self, tmp_mapping):
         db_path = "/fake/myapp/.beads/beads.db"
         issue = _make_issue(id="P-1", db_path=db_path)
-        config = {"projects": {"myapp": {"sync": False, "visible": True, "label": "myapp"}}}
+        config = {
+            "projects": {"myapp": {"sync": False, "visible": True, "label": "myapp"}}
+        }
 
         messages = []
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[issue]),
             patch("tasks_tui.sync.create_task_in_list") as mock_create,
             patch("tasks_tui.sync.update_task_in_list") as mock_update,
@@ -480,13 +531,21 @@ class TestSyncEnginePerProjectConfig:
         db_path = "/fake/myapp/.beads/beads.db"
         issue = _make_issue(id="P-1", db_path=db_path)
         mock_gtask = _make_task(id="g-1")
-        config = {"projects": {"myapp": {"sync": True, "visible": True, "label": "myapp"}}}
+        config = {
+            "projects": {"myapp": {"sync": True, "visible": True, "label": "myapp"}}
+        }
 
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[issue]),
             patch("tasks_tui.sync.list_tasklists", return_value=[]),
-            patch("tasks_tui.sync.create_tasklist", return_value={"id": "tl-1", "title": "myapp"}),
+            patch(
+                "tasks_tui.sync.create_tasklist",
+                return_value={"id": "tl-1", "title": "myapp"},
+            ),
             patch("tasks_tui.sync.create_task_in_list", return_value=mock_gtask),
             patch("tasks_tui.sync.update_task_in_list"),
         ):
@@ -503,10 +562,15 @@ class TestSyncEngineApiError:
 
         messages = []
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[issue]),
             patch("tasks_tui.sync.list_tasklists", side_effect=Exception("auth error")),
-            patch("tasks_tui.sync.create_tasklist", side_effect=Exception("auth error")),
+            patch(
+                "tasks_tui.sync.create_tasklist", side_effect=Exception("auth error")
+            ),
         ):
             engine = SyncEngine()
             engine.run(progress=messages.append)
@@ -569,16 +633,29 @@ class TestStripBdMarker:
 class TestSyncEngineGtasksToBeads:
     def test_creates_beads_issue_for_task_with_bd_marker(self, tmp_mapping):
         db_path = "/fake/myapp/.beads/beads.db"
-        task_with_bd = Task(id="g-new", title="[bd] New feature", status="needsAction", notes="Some notes")
+        task_with_bd = Task(
+            id="g-new",
+            title="[bd] New feature",
+            status="needsAction",
+            notes="Some notes",
+        )
 
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[]),
             patch("tasks_tui.sync.list_closed_mapped_issues", return_value=[]),
             patch("tasks_tui.sync.list_tasklists", return_value=[]),
-            patch("tasks_tui.sync.create_tasklist", return_value={"id": "tl-1", "title": "myapp"}),
+            patch(
+                "tasks_tui.sync.create_tasklist",
+                return_value={"id": "tl-1", "title": "myapp"},
+            ),
             patch("tasks_tui.sync.list_tasks_in_list", return_value=[task_with_bd]),
-            patch("tasks_tui.sync.create_beads_issue", return_value="MYAPP-1") as mock_create,
+            patch(
+                "tasks_tui.sync.create_beads_issue", return_value="MYAPP-1"
+            ) as mock_create,
         ):
             engine = SyncEngine()
             engine.run()
@@ -598,14 +675,25 @@ class TestSyncEngineGtasksToBeads:
 
     def test_does_not_create_beads_issue_without_bd_marker(self, tmp_mapping):
         db_path = "/fake/myapp/.beads/beads.db"
-        task_no_bd = Task(id="g-1", title="Non-coding task", status="needsAction", notes="Just a reminder")
+        task_no_bd = Task(
+            id="g-1",
+            title="Non-coding task",
+            status="needsAction",
+            notes="Just a reminder",
+        )
 
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[]),
             patch("tasks_tui.sync.list_closed_mapped_issues", return_value=[]),
             patch("tasks_tui.sync.list_tasklists", return_value=[]),
-            patch("tasks_tui.sync.create_tasklist", return_value={"id": "tl-1", "title": "myapp"}),
+            patch(
+                "tasks_tui.sync.create_tasklist",
+                return_value={"id": "tl-1", "title": "myapp"},
+            ),
             patch("tasks_tui.sync.list_tasks_in_list", return_value=[task_no_bd]),
             patch("tasks_tui.sync.create_beads_issue") as mock_create,
         ):
@@ -617,7 +705,9 @@ class TestSyncEngineGtasksToBeads:
     def test_skips_already_mapped_gtask(self, tmp_mapping):
         db_path = "/fake/myapp/.beads/beads.db"
         existing_mapping = {
-            "projects": {"/work/myapp": {"tasklist_id": "tl-1", "tasklist_name": "myapp"}},
+            "projects": {
+                "/work/myapp": {"tasklist_id": "tl-1", "tasklist_name": "myapp"}
+            },
             "mappings": [
                 {
                     "beads_id": "MYAPP-1",
@@ -631,14 +721,22 @@ class TestSyncEngineGtasksToBeads:
         tmp_mapping["mapping_file"].write_text(json.dumps(existing_mapping))
 
         already_mapped_task = Task(
-            id="g-existing", title="[bd] Old task", status="needsAction", notes="already synced"
+            id="g-existing",
+            title="[bd] Old task",
+            status="needsAction",
+            notes="already synced",
         )
 
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[]),
             patch("tasks_tui.sync.list_closed_mapped_issues", return_value=[]),
-            patch("tasks_tui.sync.list_tasks_in_list", return_value=[already_mapped_task]),
+            patch(
+                "tasks_tui.sync.list_tasks_in_list", return_value=[already_mapped_task]
+            ),
             patch("tasks_tui.sync.create_beads_issue") as mock_create,
         ):
             engine = SyncEngine()
@@ -648,16 +746,29 @@ class TestSyncEngineGtasksToBeads:
 
     def test_bd_marker_stripped_from_title(self, tmp_mapping):
         db_path = "/fake/myapp/.beads/beads.db"
-        task = Task(id="g-2", title="[bd] Add feature", status="needsAction", notes="implement login")
+        task = Task(
+            id="g-2",
+            title="[bd] Add feature",
+            status="needsAction",
+            notes="implement login",
+        )
 
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[]),
             patch("tasks_tui.sync.list_closed_mapped_issues", return_value=[]),
             patch("tasks_tui.sync.list_tasklists", return_value=[]),
-            patch("tasks_tui.sync.create_tasklist", return_value={"id": "tl-1", "title": "myapp"}),
+            patch(
+                "tasks_tui.sync.create_tasklist",
+                return_value={"id": "tl-1", "title": "myapp"},
+            ),
             patch("tasks_tui.sync.list_tasks_in_list", return_value=[task]),
-            patch("tasks_tui.sync.create_beads_issue", return_value="MYAPP-2") as mock_create,
+            patch(
+                "tasks_tui.sync.create_beads_issue", return_value="MYAPP-2"
+            ) as mock_create,
         ):
             engine = SyncEngine()
             engine.run()
@@ -672,12 +783,20 @@ class TestSyncEngineGtasksToBeads:
         messages = []
 
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[]),
             patch("tasks_tui.sync.list_closed_mapped_issues", return_value=[]),
             patch("tasks_tui.sync.list_tasklists", return_value=[]),
-            patch("tasks_tui.sync.create_tasklist", return_value={"id": "tl-1", "title": "myapp"}),
-            patch("tasks_tui.sync.list_tasks_in_list", side_effect=Exception("auth error")),
+            patch(
+                "tasks_tui.sync.create_tasklist",
+                return_value={"id": "tl-1", "title": "myapp"},
+            ),
+            patch(
+                "tasks_tui.sync.list_tasks_in_list", side_effect=Exception("auth error")
+            ),
         ):
             engine = SyncEngine()
             engine.run(progress=messages.append)
@@ -687,7 +806,9 @@ class TestSyncEngineGtasksToBeads:
     def test_create_beads_issue_error_reported_and_continues(self, tmp_mapping):
         db_path = "/fake/myapp/.beads/beads.db"
         task1 = Task(id="g-1", title="[bd] Task 1", status="needsAction", notes="first")
-        task2 = Task(id="g-2", title="[bd] Task 2", status="needsAction", notes="second")
+        task2 = Task(
+            id="g-2", title="[bd] Task 2", status="needsAction", notes="second"
+        )
         messages = []
 
         def side_effect(**kwargs):
@@ -696,11 +817,17 @@ class TestSyncEngineGtasksToBeads:
             return "MYAPP-2"
 
         with (
-            patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
+            patch(
+                "tasks_tui.sync.discover_beads_workspaces",
+                return_value={"/work/myapp": db_path},
+            ),
             patch("tasks_tui.sync.list_issues_via_cli", return_value=[]),
             patch("tasks_tui.sync.list_closed_mapped_issues", return_value=[]),
             patch("tasks_tui.sync.list_tasklists", return_value=[]),
-            patch("tasks_tui.sync.create_tasklist", return_value={"id": "tl-1", "title": "myapp"}),
+            patch(
+                "tasks_tui.sync.create_tasklist",
+                return_value={"id": "tl-1", "title": "myapp"},
+            ),
             patch("tasks_tui.sync.list_tasks_in_list", return_value=[task1, task2]),
             patch("tasks_tui.sync.create_beads_issue", side_effect=side_effect),
         ):

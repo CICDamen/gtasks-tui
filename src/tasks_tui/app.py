@@ -15,7 +15,10 @@ from tasks_tui.beads_api import (
     update_beads_issue,
 )
 from tasks_tui.config import CONFIG_PATH, get_project_config, load_config, save_config
-from tasks_tui.date_utils import _parse_date_input, _parse_due  # re-exported for backward compat
+from tasks_tui.date_utils import (
+    _parse_date_input,
+    _parse_due,
+)  # re-exported for backward compat
 from tasks_tui.screens import (
     BeadsDetailScreen,
     BeadsEditScreen,
@@ -109,7 +112,10 @@ class GTasksApp(App):
 
     def _start_app(self) -> None:
         self._load_tasks()
-        if self._config["sync"]["enabled"] and self._config["sync"]["auto_sync_on_start"]:
+        if (
+            self._config["sync"]["enabled"]
+            and self._config["sync"]["auto_sync_on_start"]
+        ):
             self.action_sync()
 
     def _load_tasks(self) -> None:
@@ -128,7 +134,8 @@ class GTasksApp(App):
         if self._config["sources"]["beads"]:
             try:
                 self._beads_issues = [
-                    i for i in list_beads_issues()
+                    i
+                    for i in list_beads_issues()
                     if get_project_config(i.project, self._config)["visible"]
                 ]
             except Exception:
@@ -206,11 +213,15 @@ class GTasksApp(App):
     def action_open_task(self) -> None:
         issue = self._selected_beads_issue()
         if issue:
-            self.push_screen(BeadsDetailScreen(issue), lambda e: e and self._open_beads_edit(issue))
+            self.push_screen(
+                BeadsDetailScreen(issue), lambda e: e and self._open_beads_edit(issue)
+            )
             return
         task = self._selected_task()
         if task:
-            self.push_screen(TaskDetailScreen(task), lambda e: e and self.action_edit_task())
+            self.push_screen(
+                TaskDetailScreen(task), lambda e: e and self.action_edit_task()
+            )
 
     def action_new_task(self) -> None:
         def on_result(result: dict | None) -> None:
@@ -238,7 +249,9 @@ class GTasksApp(App):
         def on_result(result: dict | None) -> None:
             if result:
                 try:
-                    create_subtask(result["title"], parent_id, due=result.get("due", ""))
+                    create_subtask(
+                        result["title"], parent_id, due=result.get("due", "")
+                    )
                     self._load_tasks()
                     self.notify(f"Subtask created: {result['title']}")
                 except Exception as e:
@@ -250,7 +263,9 @@ class GTasksApp(App):
         def on_result(result: dict | None) -> None:
             if result:
                 try:
-                    create_beads_child_issue(parent, result["title"], due=result.get("due", ""))
+                    create_beads_child_issue(
+                        parent, result["title"], due=result.get("due", "")
+                    )
                     self._load_tasks()
                     self.notify(f"Subtask created: {result['title']}")
                 except Exception as e:

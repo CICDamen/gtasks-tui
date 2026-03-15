@@ -70,8 +70,8 @@ def render_task_list(
         open_items.append(("beads", i))
 
     def _sort_key(entry: tuple) -> tuple:
-        kind, item = entry
-        if kind == "task":
+        _, item = entry
+        if isinstance(item, Task):
             days = item.days_until_due
             label = item.label
         else:
@@ -85,7 +85,7 @@ def render_task_list(
     lv.append(SectionHeader("Open", variant="open"))
     if open_items:
         for kind, item in open_items:
-            if kind == "task":
+            if isinstance(item, Task):
                 lv.append(TaskItem(item))
                 for subtask in subtasks_by_parent.get(item.id, []):
                     lv.append(TaskItem(subtask, is_subtask=True))

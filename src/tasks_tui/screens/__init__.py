@@ -12,7 +12,11 @@ from tasks_tui.screens.config_screens import (
     SetupScreen,
 )
 from tasks_tui.screens.shared import DatePickerScreen
-from tasks_tui.screens.task_screens import EditTaskScreen, NewTaskScreen, TaskDetailScreen
+from tasks_tui.screens.task_screens import (
+    EditTaskScreen,
+    NewTaskScreen,
+    TaskDetailScreen,
+)
 
 __all__ = [
     "BeadsDetailScreen",

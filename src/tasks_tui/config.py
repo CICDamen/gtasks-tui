@@ -19,6 +19,7 @@ DEFAULTS: dict = {
     "projects": {},
 }
 
+
 def get_project_config(name: str, config: dict) -> dict:
     """Return per-project settings with defaults applied. Label defaults to workspace name."""
     entry = config.get("projects", {}).get(name, {})
@@ -43,7 +44,9 @@ def load_config() -> dict:
             if not isinstance(user_section, dict):
                 user_section = {}
             if section == "projects":
-                result[section] = user_section  # pass through as-is; no fixed defaults to merge
+                result[section] = (
+                    user_section  # pass through as-is; no fixed defaults to merge
+                )
             else:
                 result[section] = {**section_defaults, **user_section}
         return result

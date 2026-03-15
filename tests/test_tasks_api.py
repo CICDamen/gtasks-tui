@@ -1,15 +1,15 @@
 """Tests for tasks_api — pure logic, no gws CLI calls."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
-import pytest
-
-from tasks_tui.tasks_api import Task, _gws, create_task, list_tasks
+from tasks_tui.app import _parse_due
+from tasks_tui.tasks_api import Task, create_task, list_tasks
 
 
 # ---------------------------------------------------------------------------
 # Task dataclass
 # ---------------------------------------------------------------------------
+
 
 class TestTaskDueLabel:
     def _task(self, due: str = "") -> Task:
@@ -48,11 +48,15 @@ class TestTaskProperties:
         assert t.is_overdue is False
 
     def test_is_overdue_past_due(self, freezegun_today):
-        t = Task(id="1", title="T", status="needsAction", due="2026-03-10T00:00:00.000Z")
+        t = Task(
+            id="1", title="T", status="needsAction", due="2026-03-10T00:00:00.000Z"
+        )
         assert t.is_overdue is True
 
     def test_is_overdue_future_due(self, freezegun_today):
-        t = Task(id="1", title="T", status="needsAction", due="2026-03-20T00:00:00.000Z")
+        t = Task(
+            id="1", title="T", status="needsAction", due="2026-03-20T00:00:00.000Z"
+        )
         assert t.is_overdue is False
 
 
@@ -60,11 +64,17 @@ class TestTaskProperties:
 # list_tasks
 # ---------------------------------------------------------------------------
 
+
 class TestListTasks:
     def test_returns_tasks(self):
         fake_response = {
             "items": [
-                {"id": "abc", "title": "Buy milk", "status": "needsAction", "due": "2026-03-13T00:00:00.000Z"},
+                {
+                    "id": "abc",
+                    "title": "Buy milk",
+                    "status": "needsAction",
+                    "due": "2026-03-13T00:00:00.000Z",
+                },
                 {"id": "def", "title": "Call dentist", "status": "needsAction"},
             ]
         }
@@ -91,19 +101,24 @@ class TestListTasks:
 # create_task
 # ---------------------------------------------------------------------------
 
+
 class TestCreateTask:
     def test_creates_with_title_only(self):
         fake_response = {"id": "new1", "title": "Foo", "status": "needsAction"}
         with patch("tasks_tui.tasks_api._gws", return_value=fake_response) as mock:
             task = create_task("Foo")
         mock.assert_called_once()
-        _, kwargs = mock.call_args[0], mock.call_args[1] if mock.call_args[1] else {}
         assert task.title == "Foo"
         assert task.id == "new1"
 
     def test_creates_with_due_date(self):
-        fake_response = {"id": "new2", "title": "Bar", "status": "needsAction", "due": "2026-03-15T00:00:00.000Z"}
-        with patch("tasks_tui.tasks_api._gws", return_value=fake_response) as mock:
+        fake_response = {
+            "id": "new2",
+            "title": "Bar",
+            "status": "needsAction",
+            "due": "2026-03-15T00:00:00.000Z",
+        }
+        with patch("tasks_tui.tasks_api._gws", return_value=fake_response):
             task = create_task("Bar", due="2026-03-15T00:00:00.000Z")
         assert task.due == "2026-03-15T00:00:00.000Z"
 
@@ -118,8 +133,6 @@ class TestCreateTask:
 # ---------------------------------------------------------------------------
 # _parse_due (via app module)
 # ---------------------------------------------------------------------------
-
-from tasks_tui.app import _parse_due
 
 
 class TestParseDue:
