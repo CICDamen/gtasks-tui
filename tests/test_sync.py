@@ -154,19 +154,21 @@ class TestFieldsFromIssue:
             title="Hello", description="Notes", due_at="2026-04-01T00:00:00.000Z"
         )
         fields = fields_from_issue(issue)
-        assert fields["title"] == "Hello"
-        assert fields["notes"] == "Notes (bd)"
+        assert fields["title"] == "[bd] Hello"
+        assert fields["notes"] == "Notes"
         assert fields["due"] == "2026-04-01T00:00:00.000Z"
 
-    def test_none_description_becomes_bd_marker_only(self):
+    def test_none_description_produces_bd_title_and_empty_notes(self):
         issue = _make_issue(description=None)
         fields = fields_from_issue(issue)
-        assert fields["notes"] == "(bd)"
+        assert fields["title"] == "[bd] Do the thing"
+        assert fields["notes"] == ""
 
-    def test_empty_description_becomes_bd_marker_only(self):
+    def test_empty_description_produces_bd_title_and_empty_notes(self):
         issue = _make_issue(description="")
         fields = fields_from_issue(issue)
-        assert fields["notes"] == "(bd)"
+        assert fields["title"] == "[bd] Do the thing"
+        assert fields["notes"] == ""
 
     def test_empty_due_at_becomes_empty_string(self):
         issue = _make_issue(due_at="")
@@ -263,7 +265,7 @@ class TestSyncEngineUpdateExisting:
         call_args = mock_update.call_args
         assert call_args[0][0] == "tl-1"  # tasklist_id
         assert call_args[0][1] == "g-1"  # task_id
-        assert call_args[1]["title"] == "Updated title"
+        assert call_args[1]["title"] == "[bd] Updated title"
 
 
 class TestSyncEngineClosedIssue:
@@ -521,10 +523,10 @@ class TestSyncEngineApiError:
 
 class TestHasBdMarker:
     def test_returns_true_when_marker_present(self):
-        assert _has_bd_marker("Fix the bug (bd) asap")
+        assert _has_bd_marker("[bd] Fix the bug asap")
 
     def test_returns_true_when_only_marker(self):
-        assert _has_bd_marker("(bd)")
+        assert _has_bd_marker("[bd]")
 
     def test_returns_false_when_marker_absent(self):
         assert not _has_bd_marker("Fix the bug asap")
@@ -538,16 +540,16 @@ class TestHasBdMarker:
 
 class TestStripBdMarker:
     def test_removes_marker_from_middle(self):
-        assert _strip_bd_marker("Fix bug (bd) now") == "Fix bug now"
+        assert _strip_bd_marker("Fix [bd] bug now") == "Fix bug now"
 
     def test_removes_marker_from_end(self):
-        assert _strip_bd_marker("Fix bug (bd)") == "Fix bug"
+        assert _strip_bd_marker("Fix bug [bd]") == "Fix bug"
 
     def test_removes_marker_from_start(self):
-        assert _strip_bd_marker("(bd) Fix bug") == "Fix bug"
+        assert _strip_bd_marker("[bd] Fix bug") == "Fix bug"
 
     def test_returns_empty_for_marker_only(self):
-        assert _strip_bd_marker("(bd)") == ""
+        assert _strip_bd_marker("[bd]") == ""
 
     def test_returns_empty_for_empty_input(self):
         assert _strip_bd_marker("") == ""
@@ -556,7 +558,7 @@ class TestStripBdMarker:
         assert _strip_bd_marker(None) == ""
 
     def test_collapses_extra_whitespace(self):
-        assert _strip_bd_marker("Fix  (bd)  bug") == "Fix bug"
+        assert _strip_bd_marker("Fix  [bd]  bug") == "Fix bug"
 
 
 # ---------------------------------------------------------------------------
@@ -567,7 +569,7 @@ class TestStripBdMarker:
 class TestSyncEngineGtasksToBeads:
     def test_creates_beads_issue_for_task_with_bd_marker(self, tmp_mapping):
         db_path = "/fake/myapp/.beads/beads.db"
-        task_with_bd = Task(id="g-new", title="New feature", status="needsAction", notes="Some notes (bd)")
+        task_with_bd = Task(id="g-new", title="[bd] New feature", status="needsAction", notes="Some notes")
 
         with (
             patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
@@ -629,7 +631,7 @@ class TestSyncEngineGtasksToBeads:
         tmp_mapping["mapping_file"].write_text(json.dumps(existing_mapping))
 
         already_mapped_task = Task(
-            id="g-existing", title="Old task", status="needsAction", notes="(bd) already synced"
+            id="g-existing", title="[bd] Old task", status="needsAction", notes="already synced"
         )
 
         with (
@@ -644,9 +646,9 @@ class TestSyncEngineGtasksToBeads:
 
         mock_create.assert_not_called()
 
-    def test_bd_marker_stripped_from_description(self, tmp_mapping):
+    def test_bd_marker_stripped_from_title(self, tmp_mapping):
         db_path = "/fake/myapp/.beads/beads.db"
-        task = Task(id="g-2", title="Add feature", status="needsAction", notes="(bd) implement login")
+        task = Task(id="g-2", title="[bd] Add feature", status="needsAction", notes="implement login")
 
         with (
             patch("tasks_tui.sync.discover_beads_workspaces", return_value={"/work/myapp": db_path}),
@@ -661,7 +663,8 @@ class TestSyncEngineGtasksToBeads:
             engine.run()
 
         _, kwargs = mock_create.call_args
-        assert "(bd)" not in kwargs["description"]
+        assert "[bd]" not in kwargs["title"]
+        assert kwargs["title"] == "Add feature"
         assert kwargs["description"] == "implement login"
 
     def test_list_tasks_api_error_reported_in_progress(self, tmp_mapping):
@@ -683,8 +686,8 @@ class TestSyncEngineGtasksToBeads:
 
     def test_create_beads_issue_error_reported_and_continues(self, tmp_mapping):
         db_path = "/fake/myapp/.beads/beads.db"
-        task1 = Task(id="g-1", title="Task 1", status="needsAction", notes="(bd) first")
-        task2 = Task(id="g-2", title="Task 2", status="needsAction", notes="(bd) second")
+        task1 = Task(id="g-1", title="[bd] Task 1", status="needsAction", notes="first")
+        task2 = Task(id="g-2", title="[bd] Task 2", status="needsAction", notes="second")
         messages = []
 
         def side_effect(**kwargs):

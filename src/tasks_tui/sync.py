@@ -68,6 +68,8 @@ def save_mapping(mapping: dict) -> None:
 # Field conversion helpers
 # ---------------------------------------------------------------------------
 
+BD_MARKER = "[bd]"
+
 
 def _beads_due_to_gtask_due(due_at: str) -> str:
     """Convert beads ISO datetime to Google Tasks date-only format (date portion only)."""
@@ -84,14 +86,12 @@ def _beads_due_to_gtask_due(due_at: str) -> str:
 def fields_from_issue(issue: BeadsIssue) -> dict:
     """Convert a BeadsIssue to a dict of Google Tasks API fields.
 
-    The (bd) marker is appended to notes so that the Google Task is identifiable
-    as being tracked by beads.
+    The [bd] marker is prepended to the title so that the Google Task is
+    identifiable as being tracked by beads.
     """
-    description = issue.description or ""
-    notes = f"{description} {BD_MARKER}".strip()
     return {
-        "title": issue.title,
-        "notes": notes,
+        "title": f"{BD_MARKER} {issue.title}",
+        "notes": issue.description or "",
         "due": _beads_due_to_gtask_due(issue.due_at),
     }
 
@@ -100,17 +100,14 @@ def _now_utc() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
-BD_MARKER = "(bd)"
+def _has_bd_marker(title: str | None) -> bool:
+    """Return True if the title contains the [bd] beads sync marker."""
+    return BD_MARKER in (title or "")
 
 
-def _has_bd_marker(notes: str | None) -> bool:
-    """Return True if the text contains the (bd) beads sync marker."""
-    return BD_MARKER in (notes or "")
-
-
-def _strip_bd_marker(notes: str | None) -> str:
-    """Remove the (bd) marker from text and normalise surrounding whitespace."""
-    return " ".join((notes or "").replace(BD_MARKER, " ").split())
+def _strip_bd_marker(title: str | None) -> str:
+    """Remove the [bd] marker from a title and normalise surrounding whitespace."""
+    return " ".join((title or "").replace(BD_MARKER, " ").split())
 
 
 
@@ -237,14 +234,15 @@ class SyncEngine:
         for task in tasks:
             if task.id in already_mapped:
                 continue
-            if not _has_bd_marker(task.notes):
+            if not _has_bd_marker(task.title):
                 continue
-            description = _strip_bd_marker(task.notes)
+            title = _strip_bd_marker(task.title)
+            description = task.notes
             try:
                 new_id = create_beads_issue(
                     workspace_path=workspace_path,
                     db_path=db_path,
-                    title=task.title,
+                    title=title,
                     description=description,
                     due=task.due,
                 )
