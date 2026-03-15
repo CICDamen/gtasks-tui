@@ -846,6 +846,8 @@ class GTasksApp(App):
         padding: 2 3;
         width: 56;
         height: auto;
+        max-height: 85vh;
+        overflow-y: auto;
         align: center middle;
     }
 
@@ -869,13 +871,13 @@ class GTasksApp(App):
     }
 
     .setup-row {
-        height: 3;
-        margin-bottom: 0;
+        height: auto;
+        padding-bottom: 1;
         align: left middle;
     }
 
     .setup-option-label {
-        width: 1fr;
+        width: 20;
         color: $text;
     }
 
@@ -1483,6 +1485,7 @@ class SetupScreen(ModalScreen):
                 yield Static("Search root", classes="setup-option-label")
                 yield Input(
                     value=self._get("sources", "beads_search_root"),
+                    placeholder="e.g. ~/Code",
                     id="sw-search-root",
                 )
 
@@ -1526,6 +1529,14 @@ class SetupScreen(ModalScreen):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "setup-save":
+            beads_on = self.query_one("#sw-beads", Switch).value
+            search_root = self.query_one("#sw-search-root", Input).value.strip()
+            if beads_on and search_root and not Path(search_root).expanduser().exists():
+                self.notify("Search root path does not exist", severity="error")
+                return
+            if beads_on and not search_root:
+                self.notify("Search root path is required when beads is enabled", severity="error")
+                return
             projects: dict[str, dict] = dict(self._initial.get("projects", {}))
             for row in self.query(ProjectRow):
                 projects[row.project_name] = row.get_values()
@@ -1537,7 +1548,7 @@ class SetupScreen(ModalScreen):
                 "sources": {
                     "google_tasks": self.query_one("#sw-google-tasks", Switch).value,
                     "beads": self.query_one("#sw-beads", Switch).value,
-                    "beads_search_root": self.query_one("#sw-search-root", Input).value,
+                    "beads_search_root": search_root,
                 },
                 "projects": projects,
             })
