@@ -4,15 +4,9 @@ from datetime import date, datetime, timedelta
 
 from textual.widgets import ListItem, ListView, Static
 
+from gtasks_tui.date_utils import _iso_to_date
 from gtasks_tui.tasks_api import Task
 from gtasks_tui.widgets import SectionHeader, TaskItem
-
-
-def _parse_date(iso: str) -> date:
-    try:
-        return datetime.fromisoformat(iso.replace("Z", "+00:00")).date()
-    except ValueError:
-        return date.min
 
 
 def render_task_list(
@@ -29,7 +23,7 @@ def render_task_list(
         completed_tasks = [
             t
             for t in completed_tasks
-            if t.completed_at and _parse_date(t.completed_at) >= cutoff
+            if t.completed_at and (_iso_to_date(t.completed_at) or date.min) >= cutoff
         ]
 
     if not tasks and not completed_tasks:
