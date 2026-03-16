@@ -1,5 +1,6 @@
 """Google Tasks terminal UI — application entry point."""
 
+from textual import work
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Footer, ListView
@@ -66,13 +67,26 @@ class GTasksApp(App):
     # ── Data loading ──────────────────────────────────────────────────────────
 
     def _load_tasks(self) -> None:
+        self._load_worker()
+
+    @work(thread=True)
+    def _load_worker(self) -> None:
         try:
-            self._tasks = list_tasks()
-            self._completed_tasks = list_completed_tasks()
+            tasks = list_tasks()
+            completed = list_completed_tasks()
         except Exception as e:
-            self.notify(f"Failed to load tasks: {e}", severity="error")
-            self._tasks = []
-            self._completed_tasks = []
+            self.call_from_thread(
+                self.notify, f"Failed to load tasks: {e}", severity="error"
+            )
+            tasks = []
+            completed = []
+        self.call_from_thread(self._apply_loaded_tasks, tasks, completed)
+
+    def _apply_loaded_tasks(
+        self, tasks: list[Task], completed_tasks: list[Task]
+    ) -> None:
+        self._tasks = tasks
+        self._completed_tasks = completed_tasks
         render_task_list(
             self.query_one("#task-list", ListView),
             self._tasks,
